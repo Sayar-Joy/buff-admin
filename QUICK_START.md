@@ -7,6 +7,7 @@ Your admin dashboard is now ready. The server is running at **http://localhost:3
 ## 📋 What You Can Do:
 
 ### From the Admin Dashboard:
+
 1. **Add New Buttons** - Create button links with names, URLs, icons, and descriptions
 2. **Edit Existing Buttons** - Update any button information
 3. **Delete Buttons** - Remove buttons you no longer need
@@ -16,27 +17,34 @@ Your admin dashboard is now ready. The server is running at **http://localhost:3
 ## 🔌 Connecting Your Flutter App:
 
 ### Step 1: Add HTTP Package
+
 Add to your `pubspec.yaml`:
+
 ```yaml
 dependencies:
   http: ^1.1.0
 ```
 
 ### Step 2: Copy the Integration Code
+
 Use the code from `flutter_integration_example.dart` in your Flutter project.
 
 ### Step 3: Update the Base URL
+
 In your Flutter code, change:
+
 ```dart
 static const String baseUrl = 'http://localhost:3000/api';
 ```
 
 To your actual server URL:
+
 ```dart
 static const String baseUrl = 'http://YOUR_SERVER_IP:3000/api';
 ```
 
 ### Step 4: Fetch and Display Buttons
+
 ```dart
 // Load buttons
 final buttons = await ButtonService.getActiveButtons();
@@ -58,11 +66,13 @@ ListView.builder(
 ## 🗄️ MongoDB Setup:
 
 The server is currently using a local MongoDB instance at:
+
 ```
 mongodb://localhost:27017/buffalo_dashboard
 ```
 
 ### Using MongoDB Atlas (Cloud):
+
 1. Create a free account at https://www.mongodb.com/cloud/atlas
 2. Create a cluster and get your connection string
 3. Update `.env` file:
@@ -82,6 +92,7 @@ mongodb://localhost:27017/buffalo_dashboard
 ## 🚀 Deployment:
 
 ### Deploy to Heroku:
+
 ```bash
 heroku create buffalo-dashboard
 heroku config:set MONGODB_URI=your_mongodb_uri
@@ -89,12 +100,14 @@ git push heroku main
 ```
 
 ### Deploy to Railway:
+
 ```bash
 railway init
 railway add
 ```
 
 ### Deploy to Render, Vercel, or DigitalOcean:
+
 Follow their respective Node.js deployment guides.
 
 ## 🔧 Development Commands:

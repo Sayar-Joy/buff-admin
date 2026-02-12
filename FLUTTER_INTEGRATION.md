@@ -2,9 +2,15 @@
 
 ## 🎯 How It Works
 
-1. **Dashboard Link**: `http://localhost:3000` (or your deployed URL)
-2. **API Endpoint**: Your Flutter app calls this to get button links
-3. **Change Button Destinations**: Update URLs in the dashboard, and they instantly change in your Flutter app!
+Your Buffalo Dashboard provides **4 fixed links** that you can control from the admin panel:
+
+- **3 Redirect Links**: Telegram, Viber, Website (opens URLs)
+- **1 Text Display**: Shows custom text in your Flutter app
+
+1. **Dashboard Link**: `https://buffalo-dashboard.onrender.com/`
+2. **Login**: Access the admin panel to manage your links
+3. **API Endpoint**: Your Flutter app calls this to get the links
+4. **Instant Updates**: Change URLs/text in the dashboard, and they instantly update in your Flutter app!
 
 ---
 
@@ -12,35 +18,39 @@
 
 ### Step 1: Get Your API Connection Link
 
-1. Open your deployed dashboard (e.g., `https://buffalo-dashboard.onrender.com`)
-   - Or if running locally: `http://localhost:3000`
-2. At the top, you'll see **"Flutter App Connection"** section with a green border
-3. Click **"📋 Copy"** to copy your API endpoint URL
-4. **Render Example:** `https://buffalo-dashboard.onrender.com/api/buttons`
-5. **Local Example:** `http://localhost:3000/api/buttons`
+1. Open your dashboard
+   - **Production (Deployed)**: `https://buffalo-dashboard.onrender.com/`
+   - **Local Development**: `http://localhost:3000`
+2. Login with credentials above
+3. At the top, you'll see **"Flutter App Connection"** section
+4. Click **"📋 Copy"** to copy your API endpoint URL
+5. Example: `https://buffalo-dashboard.onrender.com/api/buttons`
 
 ---
 
-### Step 2: Add Required Package to Flutter
+### Step 2: Add Required Packages to Flutter
 
-Add the HTTP package to your `pubspec.yaml`:
+Add these to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
   flutter:
     sdk: flutter
   http: ^1.1.0
-  url_launcher: ^6.2.0  # Optional: to open URLs
+  url_launcher: ^6.2.0 # To open URLs in browser/apps
 ```
 
 Run:
+
 ```bash
 flutter pub get
 ```
 
+---
+
 ### Step 3: Create Button Service in Flutter
 
-Create a new file: `lib/services/button_service.dart`
+Create: `lib/services/button_service.dart`
 
 ```dart
 import 'dart:convert';
@@ -51,7 +61,8 @@ class ButtonLink {
   final String name;
   final String url;
   final String icon;
-  final String description;
+  final String displayText;
+  final String linkType; // 'redirect' or 'text'
   final bool isActive;
   final int order;
 
@@ -60,18 +71,23 @@ class ButtonLink {
     required this.name,
     required this.url,
     this.icon = '',
-    this.description = '',
+    this.displayText = '',
+    required this.linkType,
     required this.isActive,
     required this.order,
   });
+
+  bool get isRedirect => linkType == 'redirect';
+  bool get isTextDisplay => linkType == 'text';
 
   factory ButtonLink.fromJson(Map<String, dynamic> json) {
     return ButtonLink(
       id: json['_id'],
       name: json['name'],
-      url: json['url'],
+      url: json['url'] ?? '',
       icon: json['icon'] ?? '',
-      description: json['description'] ?? '',
+      displayText: json['displayText'] ?? '',
+      linkType: json['linkType'] ?? 'redirect',
       isActive: json['isActive'],
       order: json['order'],
     );
@@ -79,15 +95,14 @@ class ButtonLink {
 }
 
 class ButtonService {
-  // 🔗 PASTE YOUR API URL HERE (copy from dashboard)
+  // 🔗 PASTE YOUR API URL HERE
   static const String apiUrl = 'https://buffalo-dashboard.onrender.com/api/buttons';
-  
-  // Use your actual Render URL:
-  // - Render: 'https://your-service-name.onrender.com/api/buttons'
-  // - For local testing: 'http://localhost:3000/api/buttons'
-  // - For Android emulator: 'http://10.0.2.2:3000/api/buttons'
-  // - For iOS simulator: 'http://localhost:3000/api/buttons'
-  // - For real device on local network: 'http://YOUR_COMPUTER_IP:3000/api/buttons'
+
+  // Choose based on your environment:
+  // - Production: 'https://buffalo-dashboard.onrender.com/api/buttons'
+  // - Local iOS sim: 'http://localhost:3000/api/buttons'
+  // - Local Android emu: 'http://10.0.2.2:3000/api/buttons'
+  // - Real device (WiFi): 'http://192.168.X.X:3000/api/buttons'
 
   static Future<List<ButtonLink>> getButtons() async {
     try {
@@ -100,7 +115,7 @@ class ButtonService {
               .map((json) => ButtonLink.fromJson(json))
               .where((button) => button.isActive)
               .toList();
-          
+
           buttons.sort((a, b) => a.order.compareTo(b.order));
           return buttons;
         }
@@ -114,35 +129,37 @@ class ButtonService {
 }
 ```
 
+---
+
 ### Step 4: Use in Your Flutter App
 
-Example implementation:
+Create: `lib/pages/links_page.dart`
 
 ```dart
 import 'package:flutter/material.dart';
-import 'services/button_service.dart';
+import '../services/button_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MyHomePage extends StatefulWidget {
+class LinksPage extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _LinksPageState createState() => _LinksPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  List<ButtonLink> buttons = [];
+class _LinksPageState extends State<LinksPage> {
+  List<ButtonLink> links = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    loadButtons();
+    loadLinks();
   }
 
-  Future<void> loadButtons() async {
+  Future<void> loadLinks() async {
     setState(() => isLoading = true);
-    final fetchedButtons = await ButtonService.getButtons();
+    final fetchedLinks = await ButtonService.getButtons();
     setState(() {
-      buttons = fetchedButtons;
+      links = fetchedLinks;
       isLoading = false;
     });
   }
@@ -151,302 +168,562 @@ class _MyHomePageState extends State<MyHomePage> {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not open link')),
+      );
     }
+  }
+
+  IconData getIcon(String iconName) {
+    switch (iconName.toLowerCase()) {
+      case 'send':
+        return Icons.send;
+      case 'phone':
+        return Icons.phone;
+      case 'language':
+        return Icons.language;
+      case 'info':
+        return Icons.info_outline;
+      default:
+        return Icons.link;
+    }
+  }
+
+  Widget buildLink(ButtonLink link) {
+    // Text Display Link (non-clickable info)
+    if (link.isTextDisplay) {
+      return Container(
+        margin: EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blue.shade200),
+        ),
+        child: Row(
+          children: [
+            Icon(getIcon(link.icon), color: Colors.blue.shade700, size: 28),
+            SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                link.displayText,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.blue.shade900,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Redirect Link (clickable)
+    return Card(
+      margin: EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: () => openUrl(link.url),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.blue,
+                child: Icon(getIcon(link.icon), color: Colors.white),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  link.name,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My App'),
+        title: Text('Quick Links'),
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
-            onPressed: loadButtons,
-            tooltip: 'Refresh buttons',
+            onPressed: loadLinks,
           ),
         ],
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : buttons.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.link_off, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text('No buttons available'),
-                      TextButton(
-                        onPressed: loadButtons,
-                        child: Text('Retry'),
-                      ),
-                    ],
+      body: RefreshIndicator(
+        onRefresh: loadLinks,
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : links.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.link_off, size: 64, color: Colors.grey),
+                        SizedBox(height: 16),
+                        Text('No links available'),
+                        SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: loadLinks,
+                          child: Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.all(16),
+                    itemCount: links.length,
+                    itemBuilder: (context, index) {
+                      return buildLink(links[index]);
+                    },
                   ),
-                )
-              : ListView.builder(
-                  padding: EdgeInsets.all(16),
-                  itemCount: buttons.length,
-                  itemBuilder: (context, index) {
-                    final button = buttons[index];
-                    return Card(
-                      margin: EdgeInsets.only(bottom: 12),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
-                        contentPadding: EdgeInsets.all(16),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blue,
-                          child: Icon(Icons.link, color: Colors.white),
-                        ),
-                        title: Text(
-                          button.name,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        subtitle: button.description.isNotEmpty
-                            ? Text(button.description)
-                            : null,
-                        trailing: Icon(Icons.arrow_forward_ios),
-                        onTap: () => openUrl(button.url),
-                      ),
-                    );
-                  },
-                ),
+      ),
     );
   }
 }
 ```
 
 ---
-Production (Render Deployment) - RECOMMENDED
+
+## ✅ Testing the Connection
+
+### Method 1: Test Your 4 Links
+
+1. **Login to dashboard**: `https://buffalo-dashboard.onrender.com/`
+
+2. **You'll see 4 fixed links**:
+   - 🔗 **Telegram Link** - Edit URL to your Telegram
+   - 🔗 **Viber Link** - Edit URL to your Viber
+   - 🔗 **Website Link** - Edit URL to your website
+   - 📝 **Display Text** - Edit text message
+
+3. **Edit a redirect link**:
+   - Click in the URL field for "Telegram Link"
+   - Change to: `https://t.me/YourChannel`
+   - Click "Save Changes"
+
+4. **Edit the text display**:
+   - Click in the "Display Text" textarea
+   - Change to: `"Welcome! Contact us below 👇"`
+   - Click "Save Changes"
+
+5. **Test in Flutter**:
+   - Restart your Flutter app (or pull to refresh)
+   - You'll see 3 clickable links + 1 info message
+   - Tap Telegram link - opens your new URL!
+
+### Method 2: Test API Response
+
+Open in browser: `https://buffalo-dashboard.onrender.com/api/buttons`
+
+You'll see JSON like:
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "_id": "...",
+      "name": "Telegram Link",
+      "url": "https://t.me/blahblah",
+      "icon": "send",
+      "linkType": "redirect",
+      "displayText": "",
+      "isActive": true,
+      "order": 1
+    },
+    {
+      "_id": "...",
+      "name": "Viber Link",
+      "url": "viber://chat?number=%2B959956252246",
+      "icon": "phone",
+      "linkType": "redirect",
+      "displayText": "",
+      "isActive": true,
+      "order": 2
+    },
+    {
+      "_id": "...",
+      "name": "Website Link",
+      "url": "https://youtube.com",
+      "icon": "language",
+      "linkType": "redirect",
+      "displayText": "",
+      "isActive": true,
+      "order": 3
+    },
+    {
+      "_id": "...",
+      "name": "Display Text",
+      "url": "",
+      "icon": "info",
+      "linkType": "text",
+      "displayText": "Welcome to our service!",
+      "isActive": true,
+      "order": 4
+    }
+  ]
+}
+```
+
+---
+
+## 🎯 Your 4 Links Explained
+
+| Name              | Type     | Purpose            | Default Value             | How to Edit               |
+| ----------------- | -------- | ------------------ | ------------------------- | ------------------------- |
+| **Telegram Link** | Redirect | Opens Telegram app | `https://t.me/blahblah`   | Change URL field          |
+| **Viber Link**    | Redirect | Opens Viber app    | `viber://chat?number=...` | Change URL field          |
+| **Website Link**  | Redirect | Opens browser      | `https://youtube.com`     | Change URL field          |
+| **Display Text**  | Text     | Shows message      | "Welcome to our service!" | Change Display Text field |
+
+### What Shows in Flutter:
+
+```
+┌────────────────────────────────┐
+│ 📝 Welcome to our service!    │  ← Display Text (blue info box)
+└────────────────────────────────┘
+
+┌────────────────────────────────┐
+│ 📱 Telegram Link          →   │  ← Clickable, opens Telegram
+└────────────────────────────────┘
+
+┌────────────────────────────────┐
+│ 📞 Viber Link             →   │  ← Clickable, opens Viber
+└────────────────────────────────┘
+
+┌────────────────────────────────┐
+│ 🌐 Website Link           →   │  ← Clickable, opens browser
+└────────────────────────────────┘
+```
+
+---
+
+## 🔧 Network Configuration
+
+### Production (Render Deployment) - RECOMMENDED ✅
+
 ```dart
 static const String apiUrl = 'https://your-service-name.onrender.com/api/buttons';
 ```
-✅ Works on all devices (Android, iOS, real devices, emulators)
-✅ No network configuration needed
+
+✅ Works everywhere (Android, iOS, real devices, emulators)  
+✅ No network configuration needed  
 ✅ Accessible from anywhere
 
 ### Local Development
 
-#### 
-## 🔧 Network Configuration
+#### iOS Simulator
 
-### Android (Emulator)
-The emulator treats `localhost` as itself, not your computer.
-
-**Update the API URL to:**
-```dart
-static const String apiUrl = 'http://10.0.2.2:3000/api/buttons';
-```
-
-### iOS (Simulator)
 ```dart
 static const String apiUrl = 'http://localhost:3000/api/buttons';
 ```
 
-### Real Device (Android/iOS)
-1. Find your computer's IP address:
-   - Mac: `System Settings > Network` or run `ifconfig | grep inet`
-   - Windows: `ipconfig` (Production)
-1. Open your Render dashboard: `https://your-app.onrender.com`
-2. You'll see 3 demo buttons already created (Home, Profile, Settings)
-3. Click "Edit" on any button
-4. Change the URL (e.g., to `https://google.com`)
-5. Click "Update Button"
-6. **In your Flutter app:** Pull to refresh or restart
-7. Tap the button - it should open the new URL!
+#### Android Emulator
 
-**Note:** First request after inactivity may take 30-60 seconds (Render free tier wakes from sleep)
+The emulator treats `localhost` as itself, not your computer.
 
-### Method 1b: Quick Test (Local Development)
-1. Open dashboard: `http://localhost:3000`
-2. Use your computer's IP:
+```dart
+static const String apiUrl = 'http://10.0.2.2:3000/api/buttons';
+```
+
+#### Real Device (Same WiFi)
+
+1. Find your computer's IP:
+   - Mac: `ifconfig | grep "inet " | grep -v 127.0.0.1`
+   - Windows: `ipconfig`
+2. Use that IP:
+
 ```dart
 static const String apiUrl = 'http://192.168.1.100:3000/api/buttons';
 ```
 
-3. **Important**: Make sure your phone and computer are on the same WiFi network!
+---
+
+## 🔐 Authentication Note
+
+The dashboard requires login to **edit** links.
+
+However, the **API endpoint (`/api/buttons`) is PUBLIC** - no authentication needed!  
+Your Flutter app can directly fetch links without any login. ✅
 
 ---
 
-## ✅ Testing the Connection
+## 🔄 How Updates Work
 
-### Method 1: Quick Test
-1. Open dashboard: http://localhost:3000
-2. You'll see 3 demo buttons already created
-3. Click "Edit" on any button
-4. Change the URL (e.g., to `https://google.com`)
-5. Click "Update Button"
-6. Restart your Flutter app
-7. Tap the button - it should open the new URL!
-
-### Method 2: Create a New Button
-1. In dashboard, fill the form:
-   - **Name**: "My Website"
-   - **URL**: "https://yourwebsite.com"
-   - **Description**: "Visit my website"
-   - **Display Order**: 10
-2. Click "Add Button"
-3. Reload your Flutter app
-4. The new button appears!
-
----
-
-## 🎨 Example: Button with Custom Icons
-
-Map icon names to Flutter icons:
-
-```dart
-IconData getIcon(String iconName) {
-  switch (iconName.toLowerCase()) {
-    case 'home':
-      return Icons.home;
-    case 'person':
-    case 'profile':
-      return Icons.person;
-    case 'settings':
-      return Icons.settings;
-    Deploy to Render (Recommended - FREE!)
-
-**Full guide:** [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
-
-Quick steps:
-1. Set up MongoDB Atlas (free cloud database)
-2. Push code to GitHub: `https://github.com/Sayar-Joy/buff-admin.git`
-3. Connect to Render.com
-4. Add MongoDB connection string as environment variable
-5. Deploy!
-
-Your dashboard will be at: `https://your-app.onrender.com`
-
-### Update Flutter App with Production URL
-```dart
-static const String apiUrl = 'https://your-app.onrender.com/api/buttons';
+```
+┌──────────────────┐
+│   Admin Panel    │  1. You login & edit Telegram URL
+│  (Dashboard)     │     Change: https://t.me/NewChannel
+└────────┬─────────┘     Click "Save Changes"
+         │
+         ↓
+┌──────────────────┐
+│    Database      │  2. MongoDB stores new URL
+│   (MongoDB)      │     Telegram Link updated
+└────────┬─────────┘
+         │
+         ↓
+┌──────────────────┐
+│   Flutter App    │  3. App fetches latest data
+│                  │     - Pull to refresh
+│  GET /api/buttons│     - Or restart app
+│                  │     → New URL appears!
+└──────────────────┘
 ```
 
-✅ No more localhost
-✅ Works on all devices
-✅ Free forever
-✅ Accessible from anywhere
+**Result**: Update once in dashboard → Changes everywhere 🎉
+
+---
+
+## 📱 Common Flutter Patterns
+
+### Pattern 1: Separate Text from Links
+
+```dart
+List<ButtonLink> get redirectLinks =>
+    links.where((l) => l.isRedirect).toList();
+
+List<ButtonLink> get textDisplays =>
+    links.where((l) => l.isTextDisplay).toList();
+
+// Show text first, then links
+Column(
+  children: [
+    ...textDisplays.map((t) => InfoCard(text: t.displayText)),
+    SizedBox(height: 16),
+    ...redirectLinks.map((l) => LinkButton(link: l)),
+  ],
+)
+```
+
+### Pattern 2: Handle Different Link Types
+
+```dart
+void handleLink(ButtonLink link) {
+  if (link.isRedirect) {
+    // Open URL
+    openUrl(link.url);
+  } else if (link.isTextDisplay) {
+    // Show in dialog or do nothing
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(link.name),
+        content: Text(link.displayText),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### Pattern 3: Auto-Refresh Every 30 Seconds
+
+```dart
+Timer? _refreshTimer;
+
+@override
+void initState() {
+  super.initState();
+  loadLinks();
+  // Auto-refresh
+  _refreshTimer = Timer.periodic(Duration(seconds: 30), (_) {
+    loadLinks();
+  });
+}
+
+@override
+void dispose() {
+  _refreshTimer?.cancel();
+  super.dispose();
+}
+```
 
 ---
 
 ## 🐛 Troubleshooting
 
-### "Failed to load buttons" Error
+### ❌ Links Not Updating?
 
-**Check 1: Is the server running?**
-- **Render:** Open `https://your-app.onrender.com` in browser
-- **Local:** Open `http://localhost:3000` in browser
-- Should see the dashboard
+**Problem**: Changed link in dashboard, Flutter shows old URL
 
-**Check 2: Using correct URL?**
-- **Production:** Must use full Render URL
-- **Local Android Emulator:** Use `10.0.2.2`
-- **Local Real device:** Use your computer's IP
+**Solution**:
 
-**Check 3: Server waking up? (Render only)**
-- Free tier sleeps after 15 minutes
-- First request takes 30-60 seconds to wake
-- Add longer timeout in Flutter:
-  ```dart
-  final response = await http.get(Uri.parse(apiUrl))
-      .timeout(Duration(seconds: 60));
-  ```//your-deployed-url.com/api/buttons';
+1. Add pull-to-refresh (see code example above)
+2. Or restart Flutter app
+3. Check console: `print('Fetched ${links.length} links');`
+
+### ❌ "Failed to load buttons"
+
+**Check 1**: Is server running?
+
+- Open `https://buffalo-dashboard.onrender.com/` in browser
+- Should see login page
+
+**Check 2**: Correct API URL?
+
+- **Android emulator**: Use `10.0.2.2`
+- **iOS simulator**: Use `localhost`
+- **Real device**: Use computer's IP address
+
+**Check 3**: Network permissions (Android)?
+Add to `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET"/>
 ```
- 1: Pull to refresh** (Add this to your Flutter app)
+
+### ❌ Can't Open Viber/Telegram Links?
+
+**Problem**: Links don't open on iOS
+
+**Solution**: Add URL schemes to `ios/Runner/Info.plist`:
+
+```xml
+<key>LSApplicationQueriesSchemes</key>
+<array>
+    <string>viber</string>
+    <string>tg</string>
+</array>
+```
+
+### ❌ Display Text Not Showing?
+
+**Problem**: Only see 3 links, not 4
+
+**Solution**: Check your filter logic:
+
 ```dart
-RefreshIndicator(
-  onRefresh: loadButtons,
-  child: ListView.builder(...),
-)
+// Make sure you're not filtering out text type
+List<ButtonLink> buttons = (data['data'] as List)
+    .map((json) => ButtonLink.fromJson(json))
+    .where((button) => button.isActive) // ✅ Keep this
+    // .where((button) => button.linkType == 'redirect') // ❌ Don't filter by type
+    .toList();
 ```
 
-**Solution 2: Add manual refresh button**
-```dart
-IconButton(
-  icon: Icon(Icons.refresh),
-  onPressed: loadButtons,
-)
-```
+### ❌ Render Server Timeout
 
-**Solution 3: Auto-refresh timer** (checks every 30 seconds)
-```dart
-Timer.periodic(Duration(seconds: 30), (_) {
-  loadButtons();
-});
-```
+**Problem**: First request takes forever (Render free tier)
 
-### Connection Timeout (Render Wake-Up)
-
-If using Render free tier, add timeout handling:
+**Solution**: Add timeout + retry:
 
 ```dart
 static Future<List<ButtonLink>> getButtons() async {
   try {
-    print('Fetching buttons...');
     final response = await http.get(Uri.parse(apiUrl))
         .timeout(
-          Duration(seconds: 60), // Allow time for server wake-up
-          onTimeout: () {
-            throw TimeoutException('Server is waking up, please wait...');
-          },
+          Duration(seconds: 60),
+          onTimeout: () => throw TimeoutException('Server waking up...'),
         );
-    
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data['success']) {
-        print('Buttons loaded successfully!');
-        // ... rest of code
-      }
-    }
-  } on TimeoutException catch (e) {
-    print(e.message);
-    // Show message to user: "Server is starting, please wait..."
-    // Retry after 3 seconds
+    // ... rest of code
+  } on TimeoutException {
+    print('Retrying in 3 seconds...');
     await Future.delayed(Duration(seconds: 3));
     return getButtons(); // Retry once
-  } catch (e) {
-    print('Error: $e');
-    return [];
   }
 }
 ```
 
 ---
 
-## 📞 Need Help?
-
-- **Deployment issues?** Check [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
-- **Can't see buttons?** Open your dashboard URL in browser first to wake server
-- **Local network issues?** Use Render instead (much easier!)
-
-Check your deployed dashboard
-
-**Solution**: Add a refresh button in your Flutter app:
-```dart
-IconButton(
-  icon: Icon(Icons.refresh),
-  onPressed: loadButtons,
-)
-```
-
----
-
 ## 💡 Pro Tips
 
-1. **Auto-refresh**: Use a timer to automatically refresh buttons every 30 seconds
-2. **Cache**: Store buttons locally to work offline
-3. **Authentication**: Add API keys in production
-4. **Analytics**: Track which buttons users tap most
+1. **Cache for Offline**: Use `shared_preferences` to store last fetched links
+2. **Loading States**: Show skeleton loader instead of spinner
+3. **Error Handling**: Show friendly error messages with retry button
+4. **Deep Links**: Parse URLs to navigate within app (e.g., `myapp://profile`)
+5. **Analytics**: Track which links users tap most
+6. **Animations**: Add hero animations when tapping links
+7. **Pull to Refresh**: Always add `RefreshIndicator` for better UX
+
+---
+
+## 🚀 Deploy to Production (Render)
+
+For production deployment, see [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)
+
+Quick steps:
+
+1. Set up MongoDB Atlas (free)
+2. Push code to GitHub
+3. Connect to Render.com
+4. Add environment variables
+5. Deploy!
+
+Your dashboard will be at: `https://your-app.onrender.com`
+
+**Update Flutter**:
+
+```dart
+static const String apiUrl = 'https://your-app.onrender.com/api/buttons';
+```
+
+✅ Works on all devices  
+✅ No localhost issues  
+✅ Free forever
 
 ---
 
 ## 📞 Need Help?
 
-Check the demo buttons at http://localhost:3000 to see working examples!
+### Quick Checklist:
+
+✅ Server running? Open `https://buffalo-dashboard.onrender.com/` in browser  
+✅ Can login? Access the dashboard with your credentials  
+✅ API working? Check `https://buffalo-dashboard.onrender.com/api/buttons`  
+✅ Flutter connected? Console should show "Fetching buttons..."  
+✅ Links appear? Should see 4 items (3 clickable + 1 info)
+
+### Common Issues:
+
+- **Can't login?** Verify your admin credentials
+- **Port 3000 in use?** Run: `lsof -ti:3000 | xargs kill -9`
+- **Flutter can't connect?** Check API URL matches your environment
+- **No data?** Run: `npm run reseed` to restore default links
+
+---
+
+## 🎉 Summary
+
+Your Buffalo Dashboard gives you **4 managed links**:
+
+✅ **No hardcoding** - Change URLs/text from admin panel  
+✅ **Real-time updates** - Edit once, update everywhere  
+✅ **Simple integration** - Just 1 API call in Flutter  
+✅ **Flexible** - 3 redirect links + 1 display text  
+✅ **Secure** - Admin panel protected, API public for reading  
+✅ **Free** - Deploy to Render at no cost
+
+**Your 4 Links:**
+
+1. Telegram → Opens Telegram app
+2. Viber → Opens Viber app
+3. Website → Opens browser
+4. Display Text → Shows custom message
+
+**Happy coding!** 🐃

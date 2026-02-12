@@ -21,11 +21,13 @@ Control your Flutter app's button destinations remotely through a beautiful web 
 ## 🚀 Quick Start
 
 ### Option 1: Deploy to Render (Recommended)
+
 **Best for production use - completely free!**
 
 📖 **[Full Deployment Guide →](RENDER_DEPLOYMENT.md)**
 
 Quick summary:
+
 1. Set up MongoDB Atlas (free cloud database)
 2. Push this repo to GitHub
 3. Connect to Render.com
@@ -36,6 +38,7 @@ Your dashboard will be live at: `https://your-app.onrender.com`
 ### Option 2: Run Locally (Development)
 
 1. **Clone and Install:**
+
 ```bash
 git clone https://github.com/Sayar-Joy/buff-admin.git
 cd buff-admin
@@ -47,17 +50,20 @@ npm install
    - Use MongoDB Atlas (cloud - easier!)
 
 3. **Configure Environment:**
+
 ```bash
 cp .env.example .env
 # Edit .env and add your MongoDB connection string
 ```
 
 4. **Start Server:**
+
 ```bash
 npm start
 ```
 
 5. **Open Dashboard:**
+
 ```
 http://localhost:3000
 ```
@@ -67,14 +73,16 @@ http://localhost:3000
 ## 📱 Connect Your Flutter App
 
 ### 1. Copy API Endpoint
+
 Open your dashboard and copy the API URL from the green connection box at the top.
 
 ### 2. Add to Flutter App
+
 ```dart
 class ButtonService {
   // Use your Render URL or localhost
   static const String apiUrl = 'https://your-app.onrender.com/api/buttons';
-  
+
   static Future<List<dynamic>> getButtons() async {
     final response = await http.get(Uri.parse(apiUrl));
     if (response.statusCode == 200) {
@@ -87,6 +95,7 @@ class ButtonService {
 ```
 
 ### 3. Display in Your UI
+
 ```dart
 final buttons = await ButtonService.getButtons();
 ListView.builder(
@@ -106,15 +115,15 @@ ListView.builder(
 
 ## 🔌 API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/buttons` | Get all button links |
-| `GET` | `/api/buttons/:id` | Get single button |
-| `POST` | `/api/buttons` | Create new button |
-| `PUT` | `/api/buttons/:id` | Update button |
-| `DELETE` | `/api/buttons/:id` | Delete button |
-| `GET` | `/api/config` | Get app configuration |
-| `PUT` | `/api/config` | Update app configuration |
+| Method   | Endpoint           | Description              |
+| -------- | ------------------ | ------------------------ |
+| `GET`    | `/api/buttons`     | Get all button links     |
+| `GET`    | `/api/buttons/:id` | Get single button        |
+| `POST`   | `/api/buttons`     | Create new button        |
+| `PUT`    | `/api/buttons/:id` | Update button            |
+| `DELETE` | `/api/buttons/:id` | Delete button            |
+| `GET`    | `/api/config`      | Get app configuration    |
+| `PUT`    | `/api/config`      | Update app configuration |
 
 ---
 
@@ -180,11 +189,13 @@ buffalo-dashboard/
 ## 🌐 Live Demo
 
 Once deployed to Render, your dashboard will be accessible at:
+
 ```
 https://your-service-name.onrender.com
 ```
 
 API endpoint for Flutter:
+
 ```
 https://your-service-name.onrender.com/api/buttons
 ```
@@ -193,17 +204,18 @@ https://your-service-name.onrender.com/api/buttons
 
 ## ⚙️ Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `MONGODB_URI` | MongoDB connection string | `mongodb+srv://user:pass@cluster.net/db` |
-| `PORT` | Server port (auto-set by Render) | `3000` |
-| `NODE_ENV` | Environment mode | `production` |
+| Variable      | Description                      | Example                                  |
+| ------------- | -------------------------------- | ---------------------------------------- |
+| `MONGODB_URI` | MongoDB connection string        | `mongodb+srv://user:pass@cluster.net/db` |
+| `PORT`        | Server port (auto-set by Render) | `3000`                                   |
+| `NODE_ENV`    | Environment mode                 | `production`                             |
 
 ---
 
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to:
+
 - Report bugs
 - Suggest features
 - Submit pull requests

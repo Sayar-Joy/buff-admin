@@ -27,9 +27,9 @@ async function checkAuth() {
   try {
     const response = await fetch(AUTH_VERIFY_URL, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-        "Content-Type": "application/json",
+      headers: { 
+        "Authorization": `Bearer ${authToken}`,
+        "Content-Type": "application/json" 
       },
     });
 
@@ -74,9 +74,9 @@ async function saveAppConfig() {
   try {
     const response = await fetch(CONFIG_URL, {
       method: "PUT",
-      headers: {
+      headers: { 
         "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
+        "Authorization": `Bearer ${authToken}`
       },
       body: JSON.stringify({
         appName: appNameInput.value,
@@ -147,36 +147,29 @@ function displayLinks(links) {
         <div class="link-card">
             <div class="link-header">
                 <h3>${escapeHtml(link.name)}</h3>
-                <span class="link-type-badge">${link.linkType === "redirect" ? "🔗 Redirect" : "📝 Text Display"}</span>
             </div>
             <div class="link-form">
-                ${
-                  link.linkType === "redirect"
-                    ? `
-                  <div class="form-group">
-                      <label>URL:</label>
-                      <input 
-                          type="text" 
-                          id="input-${link._id}" 
-                          value="${escapeHtml(link.url)}" 
-                          class="link-input"
-                          placeholder="Enter URL"
-                      />
-                  </div>
-                `
-                    : `
-                  <div class="form-group">
-                      <label>Display Text:</label>
-                      <textarea 
-                          id="input-${link._id}" 
-                          class="link-input"
-                          rows="3"
-                          placeholder="Enter text to display"
-                      >${escapeHtml(link.displayText || "")}</textarea>
-                  </div>
-                `
-                }
-                <button class="btn btn-primary" onclick="saveLink('${link._id}', '${link.linkType}')">
+                <div class="form-group">
+                    <label>URL:</label>
+                    <input 
+                        type="text" 
+                        id="url-${link._id}" 
+                        value="${escapeHtml(link.url)}" 
+                        class="link-input"
+                        placeholder="Enter URL"
+                    />
+                </div>
+                <div class="form-group">
+                    <label>Description:</label>
+                    <input 
+                        type="text" 
+                        id="desc-${link._id}" 
+                        value="${escapeHtml(link.description || "")}" 
+                        class="link-input"
+                        placeholder="Enter description"
+                    />
+                </div>
+                <button class="btn btn-primary" onclick="saveLink('${link._id}')">
                     Save Changes
                 </button>
             </div>
@@ -187,29 +180,23 @@ function displayLinks(links) {
 }
 
 // Save link changes
-async function saveLink(id, linkType) {
-  const input = document.getElementById(`input-${id}`);
-  const value = input.value.trim();
+async function saveLink(id) {
+  const urlInput = document.getElementById(`url-${id}`);
+  const descInput = document.getElementById(`desc-${id}`);
 
-  if (!value) {
-    showToast(
-      linkType === "redirect" ? "URL cannot be empty" : "Text cannot be empty",
-      "error",
-    );
+  const url = urlInput.value.trim();
+  const description = descInput.value.trim();
+
+  if (!url) {
+    showToast("URL cannot be empty", "error");
     return;
   }
-
-  const updateData =
-    linkType === "redirect" ? { url: value } : { displayText: value };
 
   try {
     const response = await fetch(`${API_URL}/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify(updateData),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url, description }),
     });
 
     const result = await response.json();
@@ -245,7 +232,8 @@ function escapeHtml(text) {
 }
 
 // Make functions globally accessible
-window.saveLink = saveLink;
+window.editButton = editButton;
+window.deleteButton = deleteButton;
+saveLink = saveLink;
 window.copyApiUrl = copyApiUrl;
 window.saveAppConfig = saveAppConfig;
-window.logout = logout;

@@ -1,108 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Buffalo Dashboard - Admin</title>
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>🐃 Buffalo Dashboard</h1>
-            <p>Manage button links for your Flutter app</p>
-        </header>
+      <header>
+        <h1>🐃 Buffalo Dashboard</h1>
+        <p>Manage button links for your Flutter app</p>
+      </header>
 
-        <!-- Connection Info Card -->
-        <div class="connection-card">
-            <div class="connection-header">
-                <h3>📱 Flutter App Connection</h3>
-                <span class="status-badge">Connected</span>
-            </div>
-            <div class="connection-info">
-                <div class="info-group">
-                    <label>API Endpoint (Use this in your Flutter app):</label>
-                    <div class="url-box">
-                        <code id="apiUrl">Loading...</code>
-                        <button class="btn-copy" onclick="copyApiUrl()">📋 Copy</button>
-                    </div>
-                </div>
-                <div class="info-group">
-                    <label>App Name:</label>
-                    <input type="text" id="appNameInput" placeholder="My Flutter App">
-                    <button class="btn btn-secondary btn-small" onclick="saveAppConfig()">Save</button>
-                </div>
-            </div>
-            <div class="connection-help">
-                💡 <strong>Quick Start:</strong> Copy the API endpoint above and use it in your Flutter app to fetch button links. Change any button's destination URL below and it will update instantly in your app!
-            </div>
+      <!-- Connection Info Card -->
+      <div class="connection-card">
+        <div class="connection-header">
+          <h3>📱 Flutter App Connection</h3>
+          <span class="status-badge">Connected</span>
         </div>
-
-        <div class="main-content">
-            <!-- Add/Edit Form -->
-            <div class="form-section">
-                <h2 id="formTitle">Add New Button</h2>
-                <form id="buttonForm">
-                    <input type="hidden" id="buttonId">
-                    
-                    <div class="form-group">
-                        <label for="buttonName">Button Name *</label>
-                        <input type="text" id="buttonName" required placeholder="e.g., Home, Profile, Settings">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="buttonUrl">URL *</label>
-                        <input type="url" id="buttonUrl" required placeholder="https://example.com">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="buttonIcon">Icon (optional)</label>
-                        <input type="text" id="buttonIcon" placeholder="e.g., home, settings, user">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="buttonDescription">Description</label>
-                        <textarea id="buttonDescription" rows="3" placeholder="Brief description of the button"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="buttonOrder">Display Order</label>
-                        <input type="number" id="buttonOrder" value="0" min="0">
-                    </div>
-
-                    <div class="form-group checkbox-group">
-                        <label>
-                            <input type="checkbox" id="buttonActive" checked>
-                            Active
-                        </label>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary" id="submitBtn">Add Button</button>
-                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Cancel</button>
-                    </div>
-                </form>
+        <div class="connection-info">
+          <div class="info-group">
+            <label>API Endpoint (Use this in your Flutter app):</label>
+            <div class="url-box">
+              <code id="apiUrl">Loading...</code>
+              <button class="btn-copy" onclick="copyApiUrl()">📋 Copy</button>
             </div>
-
-            <!-- Buttons List -->
-            <div class="list-section">
-                <div class="list-header">
-                    <h2>Button Links</h2>
-                    <div class="stats">
-                        <span id="buttonCount">0</span> buttons
-                    </div>
-                </div>
-                
-                <div id="buttonsList" class="buttons-list">
-                    <div class="loading">Loading buttons...</div>
-                </div>
-            </div>
+          </div>
+          <div class="info-group">
+            <label>App Name:</label>
+            <input type="text" id="appNameInput" placeholder="My Flutter App" />
+            <button
+              class="btn btn-secondary btn-small"
+              onclick="saveAppConfig()"
+            >
+              Save
+            </button>
+          </div>
         </div>
+        <div class="connection-help">
+          💡 <strong>Quick Start:</strong> Copy the API endpoint above and use
+          it in your Flutter app to fetch button links. Change any button's
+          destination URL below and it will update instantly in your app!
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- Links Section -->
+        <div class="links-section">
+          <div class="list-header">
+            <h2>Your Links</h2>
+            <div class="stats">4 links</div>
+            <button class="btn btn-logout" onclick="logout()">Logout</button>
+          </div>
+
+          <div id="linksList" class="links-list">
+            <div class="loading">Loading links...</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
     <script src="js/app.js"></script>
-</body>
+  </body>
 </html>

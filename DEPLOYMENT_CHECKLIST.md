@@ -5,6 +5,7 @@ Use this checklist to ensure everything is ready for Render deployment.
 ## Pre-Deployment Checklist
 
 ### Files Required ✓
+
 - [x] `package.json` with all dependencies
 - [x] `server.js` main application file
 - [x] `render.yaml` configuration file
@@ -15,12 +16,14 @@ Use this checklist to ensure everything is ready for Render deployment.
 - [x] Documentation (README, guides)
 
 ### Git & GitHub ⏳
+
 - [ ] Git initialized (`git init`)
 - [ ] All files committed
 - [ ] Remote added: `https://github.com/Sayar-Joy/buff-admin.git`
 - [ ] Pushed to GitHub (`git push origin main`)
 
 ### MongoDB Atlas ⏳
+
 - [ ] Free M0 cluster created
 - [ ] Database user created (username & password saved)
 - [ ] Network access: 0.0.0.0/0 whitelisted
@@ -28,6 +31,7 @@ Use this checklist to ensure everything is ready for Render deployment.
 - [ ] Password replaced in connection string
 
 ### Render Setup ⏳
+
 - [ ] Render account created (signed in with GitHub)
 - [ ] Repository connected to Render
 - [ ] Build command: `npm install`
@@ -39,6 +43,7 @@ Use this checklist to ensure everything is ready for Render deployment.
 ## Post-Deployment Checklist
 
 ### Verify Deployment ⏳
+
 - [ ] Build completed successfully (check Render logs)
 - [ ] Service shows "Live" status
 - [ ] Dashboard accessible at Render URL
@@ -48,13 +53,16 @@ Use this checklist to ensure everything is ready for Render deployment.
 - [ ] Can delete button
 
 ### Test API ⏳
+
 - [ ] Visit `https://your-app.onrender.com/api/buttons`
 - [ ] See JSON response with button data
 - [ ] Response includes `success: true`
 - [ ] Buttons array contains demo data
 
 ### Render Logs Check ⏳
+
 Look for these messages in Render logs:
+
 - [ ] ✓ MongoDB connected successfully
 - [ ] ✓ App configuration initialized
 - [ ] ✓ Demo buttons created (or existing count shown)
@@ -63,6 +71,7 @@ Look for these messages in Render logs:
 ## Flutter Integration Checklist
 
 ### Update Flutter Code ⏳
+
 - [ ] Copied Render URL from dashboard
 - [ ] Updated `apiUrl` in ButtonService
 - [ ] Added timeout (60 seconds for wake-up)
@@ -72,6 +81,7 @@ Look for these messages in Render logs:
 - [ ] Added refresh functionality
 
 ### Test in Flutter ⏳
+
 - [ ] Works on Android emulator
 - [ ] Works on iOS simulator
 - [ ] Works on real device
@@ -82,18 +92,21 @@ Look for these messages in Render logs:
 ## Production Ready Checklist
 
 ### Security (Optional but Recommended) ⏳
+
 - [ ] Consider adding authentication to dashboard
 - [ ] Restrict CORS to your Flutter app domain
 - [ ] Monitor usage in Render dashboard
 - [ ] Keep MongoDB credentials secure
 
 ### Documentation ⏳
+
 - [ ] README.md updated with live URL
 - [ ] Team/users know how to access dashboard
 - [ ] Flutter developers have integration guide
 - [ ] Backup MongoDB connection string somewhere safe
 
 ### Monitoring ⏳
+
 - [ ] Bookmarked Render dashboard
 - [ ] Bookmarked MongoDB Atlas dashboard
 - [ ] Know how to check logs
@@ -102,23 +115,27 @@ Look for these messages in Render logs:
 ## Common Issues Resolved
 
 ### Issue: Build Failed
+
 - [x] Verified package.json is valid JSON
 - [x] All dependencies listed
 - [x] No syntax errors in server.js
 
 ### Issue: MongoDB Connection Failed
+
 - [x] Connection string format correct
 - [x] Password doesn't contain special characters needing encoding
 - [x] Network access allows 0.0.0.0/0
 - [x] Database name included in connection string
 
 ### Issue: App Not Responding
+
 - [x] Environment variables set correctly
 - [x] MongoDB URI starts with `mongodb+srv://`
 - [x] Build command is `npm install`
 - [x] Start command is `npm start`
 
 ### Issue: Flutter Can't Connect
+
 - [x] Using HTTPS Render URL (not HTTP)
 - [x] No trailing slash in URL
 - [x] Timeout set to 60+ seconds
@@ -129,6 +146,7 @@ Look for these messages in Render logs:
 ## Quick Commands Reference
 
 ### Git Commands
+
 ```bash
 # Initial setup
 git init
@@ -145,6 +163,7 @@ git push
 ```
 
 ### Test API
+
 ```bash
 # Test locally
 curl http://localhost:3000/api/buttons

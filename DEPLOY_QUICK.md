@@ -1,6 +1,7 @@
 # 🚀 Quick Deploy to Render via GitHub
 
 ## Prerequisites
+
 - GitHub account
 - This code ready to push
 
@@ -30,6 +31,7 @@ git push -u origin main
 ```
 
 **If you need to authenticate:**
+
 - GitHub may ask for username and password
 - Use a Personal Access Token instead of password
 - Get token: GitHub → Settings → Developer settings → Personal access tokens → Generate new token
@@ -69,17 +71,17 @@ git push -u origin main
 
 5. **Environment Variables:**
    Click "Advanced" → Add Environment Variable:
-   
-   | Key | Value |
-   |-----|-------|
+
+   | Key           | Value                                |
+   | ------------- | ------------------------------------ |
    | `MONGODB_URI` | Your MongoDB Atlas connection string |
-   | `NODE_ENV` | `production` |
+   | `NODE_ENV`    | `production`                         |
 
 6. **Create Web Service** (blue button at bottom)
 
 7. **Wait 3-5 minutes** for deployment
 
-8. **Your app is live!** 
+8. **Your app is live!**
    ```
    https://buffalo-dashboard.onrender.com
    ```
@@ -109,16 +111,19 @@ static const String apiUrl = 'https://buffalo-dashboard.onrender.com/api/buttons
 ## Troubleshooting
 
 ### Build Failed
+
 - Check logs in Render dashboard
 - Verify `package.json` is correct
 - Ensure `node` version compatibility
 
 ### "Application failed to respond"
+
 - Check MongoDB connection string is correct
 - Ensure network access in MongoDB Atlas is 0.0.0.0/0
 - Check Render logs for MongoDB connection errors
 
 ### Can't Access Dashboard
+
 - Wait 60 seconds (might be waking from sleep on free tier)
 - Check Render logs for errors
 - Verify environment variables are set
